@@ -66,9 +66,20 @@ def encode_file(data, codes, output_path):
     with open(output_path, 'wb') as file_obj:
         file_obj.write(bytes_array)
 
+class CanonicalCode:
+
+    def __init__(self, symbol, code):
+        self.symbol = symbol
+        self.code = code
 
 def tree_to_canonical_tree(tree):
     raise NotImplementedError
+
+def canonical_huffman_codes(codes):
+    canonical_codes = []
+    for key in codes:
+        canonical_codes.append(CanonicalCode(key, codes[key]))
+    
 
 def decode_file(input_path):
     raise NotImplementedError
