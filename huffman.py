@@ -77,4 +77,19 @@ def bytes_to_tree(bytes_data):
     raise NotImplementedError
 
 def decode_data(data, tree):
-    raise NotImplementedError
+    result = ''
+    current_node = tree
+    for char in data:
+        if char == '1':
+            if current_node.left.symbol != '':
+                result += current_node.left.symbol
+                current_node = tree
+            else:
+                current_node = current_node.left
+        elif char == '0':
+            if current_node.right.symbol != '':
+                result += current_node.right.symbol
+                current_node = tree
+            else:
+                current_node = current_node.right
+    return result

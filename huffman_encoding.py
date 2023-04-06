@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from huffman import calculate_probability, create_tree, Node, encode_file
+from huffman import calculate_probability, create_tree, Node, decode_data, encode_file
 import sys
 
 def calculate_code(node, value=''):
@@ -55,4 +55,12 @@ encode_file(data, codes_x, output_path)
 with open(output_path, mode='rb') as file:
     fileContent = file.read()
 
-print(''.join(map('{:08b}'.format, fileContent)))
+result = ''.join(map('{:08b}'.format, fileContent))
+
+print(result)
+
+printTree(tree)
+
+result_parsed = decode_data(result, tree)
+
+print(result_parsed)
