@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from huffman import calculate_probability, create_tree, Node, decode_data, encode_file
+from huffman import binary_string_add_one, calculate_probability, canonical_huffman_codes, create_tree, Node, decode_data, encode_file
 import sys
 
 def calculate_code(node, value=''):
@@ -47,6 +47,10 @@ codes = probabilities
 
 # calculate codes
 codes_x = calculate_code(tree, '')
+
+can_code = canonical_huffman_codes(codes_x)
+print(codes_x)
+print(can_code)
 
 # write file
 encode_file(data, codes_x, output_path)

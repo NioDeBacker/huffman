@@ -72,13 +72,40 @@ class CanonicalCode:
         self.symbol = symbol
         self.code = code
 
-def tree_to_canonical_tree(tree):
+    def __str__(self):
+        return f'{self.symbol}: {self.code}'
+    
+    def __repr__(self):
+        return f'{self.symbol}: {self.code}'
+
+    def __lt__(self, other):
+        return len(self.code) < len(other.code) if len(self.code) != len(other.code) else self.symbol < other.symbol
+
+def binary_string_add_one(code):
+    return bin(sum(int(x, 2) for x in [code, '1']))[2:]
+
+def encode_codes(canonical_codes):
     raise NotImplementedError
 
 def canonical_huffman_codes(codes):
+
+    # sorting part
     canonical_codes = []
     for key in codes:
         canonical_codes.append(CanonicalCode(key, codes[key]))
+    canonical_codes.sort()
+    
+    canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, len(canonical_codes[0].code) * "0" )
+
+    # transforming part
+    prev_code = canonical_codes[0].code
+    for code in canonical_codes[1:]:
+        new_code = binary_string_add_one(prev_code)
+        len_diff = len(code.code) - len(new_code)
+        new_code += ("0" * len_diff)
+        code.code = new_code
+        prev_code = new_code
+    return canonical_codes
     
 
 def decode_file(input_path):
