@@ -56,6 +56,25 @@ def bitstring_to_bytes(s):
     bitlist = list(map(''.join, zip(*[iter(s)]*8)))   
     bytess = bytearray([int(i,2) for i in bitlist])
     return bytess
+
+def encode_canonical_file(data, codes, encoded_codes, output_path):
+    bit_string = ""
+
+    codes_dict = dict()
+
+    for code in codes:
+        codes_dict[code.symbol] = code.code
+    
+    for d in data:
+        bit_string += codes_dict[d]
+    
+    print(encoded_codes + bit_string)
+
+    bytes_array = bitstring_to_bytes(encoded_codes + bit_string)
+
+    with open(output_path, 'wb') as file_obj:
+        file_obj.write(bytes_array)
+
 def encode_file(data, codes, output_path):
     bit_string = ""
     for d in data:
@@ -84,8 +103,30 @@ class CanonicalCode:
 def binary_string_add_one(code):
     return bin(sum(int(x, 2) for x in [code, '1']))[2:]
 
-def encode_codes(canonical_codes):
-    raise NotImplementedError
+
+
+def encoding_to_bytestring(codes):
+    lengths = [0]*8
+
+    bytestring = ""
+
+    for code in codes:
+        lengths[len(code.code)] += 1
+
+    for length in lengths:
+        byte = "{0:b}".format(length)
+        byte = ('0' * (8 - len(byte))) + byte
+        print(byte)
+        bytestring += byte
+
+    
+    for code in codes:
+        bytecode = f"{ord(code.symbol):08b}"
+        bytestring += bytecode
+    
+    bytestring += ("1" * 8)
+    return bytestring
+
 
 def canonical_huffman_codes(codes):
 
@@ -109,10 +150,76 @@ def canonical_huffman_codes(codes):
     
 
 def decode_file(input_path):
-    raise NotImplementedError
+    with open(input_path, mode='rb') as file:
+        fileContent = file.read()
 
-def bytes_to_tree(bytes_data):
-    raise NotImplementedError
+    data = ''.join(map('{:08b}'.format, fileContent))
+
+    return data
+
+def bytestring_to_frequencies(bytestring):
+    freqencies = []
+    for elem in range(0, 64, 8):
+        freq = int(bytestring[elem:elem+8], 2)
+        freqencies.append(freq)
+
+    return freqencies
+        
+
+def decode_bytestring_to_tables(bytestring):
+    
+    counter = 8*8
+
+    # get first eight
+    freq = bytestring_to_frequencies(bytestring[:counter])
+    
+    # build codes
+    len_counter = 0
+    cur_code = '0'
+    canonical_codes = dict()
+
+    next_byte = bytestring[counter:counter+8]
+
+    while next_byte != '11111111':
+        print(freq)
+        print(next_byte)
+        print(canonical_codes)
+        if freq[len_counter] > 0:
+            freq[len_counter] -= 1
+        else:
+            len_counter += 1
+
+        symbol = chr(int(next_byte, 2))
+
+        code = cur_code
+        len_diff = len_counter + 1 - len(code)
+        code = cur_code + ('0' * len_diff)
+        cur_code = binary_string_add_one(code)
+
+        canonical_codes[code] = symbol
+
+        counter += 8
+        next_byte = bytestring[counter:counter+8]
+
+    return (canonical_codes, counter) 
+
+def decode_data_with_table(data, table):
+    result = ''
+    current_str = ''
+    print(data)
+    data = data[8:]
+    print(data)
+    for bit in data:
+        current_str += bit
+        print(f'current_str {current_str}, {"1" * 8}, {current_str == "1" * 8}')
+        if current_str in table:
+            result += table[current_str]
+            current_str = ''
+        
+
+    return result
+
+        
 
 def decode_data(data, tree):
     result = ''

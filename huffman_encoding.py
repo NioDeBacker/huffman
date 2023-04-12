@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from huffman import binary_string_add_one, calculate_probability, canonical_huffman_codes, create_tree, Node, decode_data, encode_file
+from huffman import binary_string_add_one, calculate_probability, canonical_huffman_codes, create_tree, Node, decode_data, encode_canonical_file, encode_file, encoding_to_bytestring
 import sys
 
 def calculate_code(node, value=''):
@@ -48,23 +48,14 @@ codes = probabilities
 # calculate codes
 codes_x = calculate_code(tree, '')
 
-can_code = canonical_huffman_codes(codes_x)
-print(codes_x)
-print(can_code)
+# calculate canonical codes
+can_codes = canonical_huffman_codes(codes_x)
+
+# encode table
+can_code_string = encoding_to_bytestring(can_codes)
 
 # write file
-encode_file(data, codes_x, output_path)
+encode_canonical_file(data, can_codes, can_code_string, output_path)
 
-# check we did right
-with open(output_path, mode='rb') as file:
-    fileContent = file.read()
 
-result = ''.join(map('{:08b}'.format, fileContent))
 
-print(result)
-
-printTree(tree)
-
-result_parsed = decode_data(result, tree)
-
-print(result_parsed)
