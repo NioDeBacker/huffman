@@ -54,7 +54,7 @@ def create_tree(nodes):
 
 def bitstring_to_bytes(s):
     while len(s) % 8 != 0:
-        s += '0'
+        s += '1'
     bitlist = list(map(''.join, zip(*[iter(s)]*8)))   
     bytess = bytearray([int(i,2) for i in bitlist])
     return bytess
