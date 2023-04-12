@@ -1,3 +1,5 @@
+import copy
+
 class Node:
     def __init__(self, prob, symbol, left=None, right=None):
         
@@ -68,7 +70,6 @@ def encode_canonical_file(data, codes, encoded_codes, output_path):
     for d in data:
         bit_string += codes_dict[d]
     
-    print(encoded_codes + bit_string)
 
     bytes_array = bitstring_to_bytes(encoded_codes + bit_string)
 
@@ -116,7 +117,6 @@ def encoding_to_bytestring(codes):
     for length in lengths:
         byte = "{0:b}".format(length)
         byte = ('0' * (8 - len(byte))) + byte
-        print(byte)
         bytestring += byte
 
     
@@ -129,7 +129,6 @@ def encoding_to_bytestring(codes):
 
 
 def canonical_huffman_codes(codes):
-
     # sorting part
     canonical_codes = []
     for key in codes:
@@ -140,13 +139,33 @@ def canonical_huffman_codes(codes):
 
     # transforming part
     prev_code = canonical_codes[0].code
-    for code in canonical_codes[1:]:
-        new_code = binary_string_add_one(prev_code)
+    for count, code in enumerate(canonical_codes[1:]):
+        if prev_code == '00':
+            new_code = '01'
+        else:
+            new_code = binary_string_add_one(prev_code)
         len_diff = len(code.code) - len(new_code)
         new_code += ("0" * len_diff)
         code.code = new_code
         prev_code = new_code
+
+    # print(canonical_codes)
+    while check_if_table_contains_unordered(canonical_codes):
+        canonical_dict = dict()
+        for c in canonical_codes:
+            canonical_dict[c.symbol] = c.code
+        
+        canonical_codes = canonical_huffman_codes(canonical_dict)
+
     return canonical_codes
+
+    
+
+def check_if_table_contains_unordered(table):
+    for c in range(0, len(table)-2):
+        if table[c].symbol > table[c+1].symbol and len(table[c].code) == len(table[c+1].code):
+            return True
+    return False
     
 
 def decode_file(input_path):
@@ -181,20 +200,26 @@ def decode_bytestring_to_tables(bytestring):
     next_byte = bytestring[counter:counter+8]
 
     while next_byte != '11111111':
-        print(freq)
-        print(next_byte)
-        print(canonical_codes)
+        # print(f'next_byte: {next_byte}')
+        # print(f'freq[] {freq[len_counter]}')
         if freq[len_counter] > 0:
             freq[len_counter] -= 1
         else:
-            len_counter += 1
+            while freq[len_counter] == 0:
+                len_counter += 1
+            freq[len_counter] -= 1
+
 
         symbol = chr(int(next_byte, 2))
 
         code = cur_code
-        len_diff = len_counter + 1 - len(code)
+        # print(f'len_counter: {len_counter}')
+        len_diff = len_counter - len(code)
         code = cur_code + ('0' * len_diff)
-        cur_code = binary_string_add_one(code)
+        if code == '00':
+            cur_code = '01'
+        else:
+            cur_code = binary_string_add_one(code)
 
         canonical_codes[code] = symbol
 
@@ -206,12 +231,11 @@ def decode_bytestring_to_tables(bytestring):
 def decode_data_with_table(data, table):
     result = ''
     current_str = ''
-    print(data)
     data = data[8:]
-    print(data)
+
     for bit in data:
+        print(current_str)
         current_str += bit
-        print(f'current_str {current_str}, {"1" * 8}, {current_str == "1" * 8}')
         if current_str in table:
             result += table[current_str]
             current_str = ''
