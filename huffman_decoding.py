@@ -7,18 +7,17 @@ input_path = sys.argv[1]
 
 output_path = sys.argv[2]
 
-data = decode_file(input_path)
+(data, trailing_ones) = decode_file(input_path)
 
-print(data)
 
 (table, counter) = decode_bytestring_to_tables(data)
 
 print(table)
-print(counter)
 
 data = data[counter:]
+print(data)
 
-result = decode_data_with_table(data, table)
+result = decode_data_with_table(data, table, trailing_ones)
 
 
 print(f'result: {result}')

@@ -45,6 +45,8 @@ def printTree(node, level=0):
 
 codes = probabilities
 
+printTree(tree)
+
 # calculate codes
 codes_x = calculate_code(tree, '')
 

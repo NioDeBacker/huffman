@@ -53,8 +53,12 @@ def create_tree(nodes):
     return nodes[0]
 
 def bitstring_to_bytes(s):
+    counter = 0
     while len(s) % 8 != 0:
+        counter += 1
         s += '1'
+    counter = "{:08b}".format(counter)
+    s = counter + s
     bitlist = list(map(''.join, zip(*[iter(s)]*8)))   
     bytess = bytearray([int(i,2) for i in bitlist])
     return bytess
@@ -102,7 +106,11 @@ class CanonicalCode:
         return len(self.code) < len(other.code) if len(self.code) != len(other.code) else self.symbol < other.symbol
 
 def binary_string_add_one(code):
-    return bin(sum(int(x, 2) for x in [code, '1']))[2:]
+    new = bin(sum(int(x, 2) for x in [code, '1']))[2:]
+    if len(code) > len(new):
+        new = ((len(code) - len(new)) * '0') + new
+    print(f'{code} => {new}')
+    return new
 
 
 
@@ -112,6 +120,7 @@ def encoding_to_bytestring(codes):
     bytestring = ""
 
     for code in codes:
+        print(code)
         lengths[len(code.code)] += 1
 
     for length in lengths:
@@ -135,15 +144,13 @@ def canonical_huffman_codes(codes):
         canonical_codes.append(CanonicalCode(key, codes[key]))
     canonical_codes.sort()
     
-    canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, len(canonical_codes[0].code) * "0" )
-
+    # canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, len(canonical_codes[0].code) * "0" )
+    canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, "00" )
     # transforming part
     prev_code = canonical_codes[0].code
     for count, code in enumerate(canonical_codes[1:]):
-        if prev_code == '00':
-            new_code = '01'
-        else:
-            new_code = binary_string_add_one(prev_code)
+
+        new_code = binary_string_add_one(prev_code)
         len_diff = len(code.code) - len(new_code)
         new_code += ("0" * len_diff)
         code.code = new_code
@@ -173,8 +180,9 @@ def decode_file(input_path):
         fileContent = file.read()
 
     data = ''.join(map('{:08b}'.format, fileContent))
-
-    return data
+    trailing_ones = int(data[:8], 2)
+    data = data[8:]
+    return (data, trailing_ones)
 
 def bytestring_to_frequencies(bytestring):
     freqencies = []
@@ -216,10 +224,8 @@ def decode_bytestring_to_tables(bytestring):
         # print(f'len_counter: {len_counter}')
         len_diff = len_counter - len(code)
         code = cur_code + ('0' * len_diff)
-        if code == '00':
-            cur_code = '01'
-        else:
-            cur_code = binary_string_add_one(code)
+
+        cur_code = binary_string_add_one(code)
 
         canonical_codes[code] = symbol
 
@@ -228,13 +234,11 @@ def decode_bytestring_to_tables(bytestring):
 
     return (canonical_codes, counter) 
 
-def decode_data_with_table(data, table):
+def decode_data_with_table(data, table, trailing_ones = 0):
     result = ''
     current_str = ''
     data = data[8:]
-
-    for bit in data:
-        print(current_str)
+    for bit in data[:len(data) - trailing_ones]:
         current_str += bit
         if current_str in table:
             result += table[current_str]
