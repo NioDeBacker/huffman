@@ -45,7 +45,7 @@ def printTree(node, level=0):
 
 codes = probabilities
 
-printTree(tree)
+# printTree(tree)
 
 # calculate codes
 codes_x = calculate_code(tree, '')
@@ -55,6 +55,8 @@ can_codes = canonical_huffman_codes(codes_x)
 
 # encode table
 can_code_string = encoding_to_bytestring(can_codes)
+
+print(can_codes)
 
 # write file
 encode_canonical_file(data, can_codes, can_code_string, output_path)

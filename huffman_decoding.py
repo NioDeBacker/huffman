@@ -7,25 +7,20 @@ input_path = sys.argv[1]
 
 output_path = sys.argv[2]
 
-(data, trailing_ones) = decode_file(input_path)
+(data, trailing_ones, max_code_length) = decode_file(input_path)
 
 
-(table, counter) = decode_bytestring_to_tables(data)
+(table, counter) = decode_bytestring_to_tables(data, max_code_length)
 
 print(table)
 
 data = data[counter:]
-print(data)
 
 result = decode_data_with_table(data, table, trailing_ones)
 
 
+
 print(f'result: {result}')
 
-
-
-
-
-# printTree(tree)
-# result_parsed = decode_data(result, tree)
-# print(result_parsed)
+with open(output_path, 'w') as file_obj:
+        file_obj.write(result)

@@ -109,18 +109,23 @@ def binary_string_add_one(code):
     new = bin(sum(int(x, 2) for x in [code, '1']))[2:]
     if len(code) > len(new):
         new = ((len(code) - len(new)) * '0') + new
-    print(f'{code} => {new}')
+    print(f'{code} => {new}, (old new: {bin(sum(int(x, 2) for x in [code, "1"]))[2:]})')
     return new
 
 
 
 def encoding_to_bytestring(codes):
-    lengths = [0]*8
+    max_code_length = 0
+    for code in codes:
+        if len(code.code) > max_code_length:
+            max_code_length = len(code.code)
+    lengths = [0]*(max_code_length + 1)
 
-    bytestring = ""
+
+    max_code_length_string = "{0:b}".format(max_code_length)
+    bytestring = ('0' * (8 - len(max_code_length_string))) + max_code_length_string
 
     for code in codes:
-        print(code)
         lengths[len(code.code)] += 1
 
     for length in lengths:
@@ -144,8 +149,8 @@ def canonical_huffman_codes(codes):
         canonical_codes.append(CanonicalCode(key, codes[key]))
     canonical_codes.sort()
     
-    # canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, len(canonical_codes[0].code) * "0" )
-    canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, "00" )
+    canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, len(canonical_codes[0].code) * "0" )
+    # canonical_codes[0] = CanonicalCode(canonical_codes[0].symbol, "00" )
     # transforming part
     prev_code = canonical_codes[0].code
     for count, code in enumerate(canonical_codes[1:]):
@@ -181,25 +186,26 @@ def decode_file(input_path):
 
     data = ''.join(map('{:08b}'.format, fileContent))
     trailing_ones = int(data[:8], 2)
-    data = data[8:]
-    return (data, trailing_ones)
+    max_code_length = int(data[8:16], 2)
+    data = data[16:]
+    return (data, trailing_ones, max_code_length)
 
-def bytestring_to_frequencies(bytestring):
+def bytestring_to_frequencies(bytestring, max_code_length):
     freqencies = []
-    for elem in range(0, 64, 8):
+    for elem in range(0, (8*max_code_length+1), 8):
         freq = int(bytestring[elem:elem+8], 2)
         freqencies.append(freq)
 
     return freqencies
         
 
-def decode_bytestring_to_tables(bytestring):
+def decode_bytestring_to_tables(bytestring, max_code_length):
     
-    counter = 8*8
+    counter = 8*(max_code_length+1)
 
-    # get first eight
-    freq = bytestring_to_frequencies(bytestring[:counter])
-    
+    # get frequencies
+    freq = bytestring_to_frequencies(bytestring[:counter], max_code_length)
+    print(freq)
     # build codes
     len_counter = 0
     cur_code = '0'
@@ -238,9 +244,12 @@ def decode_data_with_table(data, table, trailing_ones = 0):
     result = ''
     current_str = ''
     data = data[8:]
+    print(f'data: {data}')
+
     for bit in data[:len(data) - trailing_ones]:
         current_str += bit
         if current_str in table:
+            # print(f'curr str: {current_str}, corresp_code: {table[current_str]}')
             result += table[current_str]
             current_str = ''
         
